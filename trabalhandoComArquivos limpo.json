@@ -1,0 +1,766 @@
+{
+  "name": "trabalhandoComArquivos",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('separarDados').item.json.mensagemRecebida }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "f8f0909e-db11-415d-b1da-435446856871"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9169b267-2e84-4c27-85c1-95c42c02e025",
+                    "leftValue": "={{ $('RecebeMensagem').item.json.body.payload.media.mimetype }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pdf"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "25a8bb17-f3d2-4ffe-bfe9-2a988192ab55",
+                    "leftValue": "={{ $('RecebeMensagem').item.json.body.payload.media.mimetype }}",
+                    "rightValue": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "planilha"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        -32
+      ],
+      "id": "17f04b06-b7f3-44cb-8e2a-56fac7e41a3d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -896,
+        0
+      ],
+      "id": "c9352701-bed7-4c08-a997-4cc3fcf9be7a",
+      "name": "RecebeMensagem",
+      "webhookId": "SEU_WEBHOOK_ID_AQUI",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "acf7b6ad-c3a1-43d5-9aa3-3f785ac90727",
+              "leftValue": "={{ $('RecebeMensagem').item.json.body.payload.fromMe }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c42cdcfa-f662-4f1d-bf62-3c2d55c6da63",
+              "leftValue": "={{ $('RecebeMensagem').item.json.body.payload.source }}",
+              "rightValue": "app",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        0
+      ],
+      "id": "5e7e51a0-3b8f-4673-8c9c-0df56f98ace7",
+      "name": "filtraMensagem"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "316f66c1-5d82-4599-a65b-40335601bd89",
+              "name": "prompt",
+              "value": "={{ $json.mensagemRecebida }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -320,
+        -352
+      ],
+      "id": "e790b4f5-4bde-445c-ada5-88d8b88d46ee",
+      "name": "promptTexto"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        -352
+      ],
+      "id": "6f16186c-1bc4-4bf1-a558-6d9b0e349496",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        -96
+      ],
+      "id": "a8b8f04c-7cff-4e85-aa53-b424520bdc9a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "SUA_CREDANCIAL_OPENAI_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Switch').item.json.telefone }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        832,
+        -176
+      ],
+      "id": "ba40a71d-afc0-40b5-b175-88054d4045cd",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "SUA_CREDANCIAL_POSTGRES_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "SUA_WAHA_API_KEY_AQUI"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Send Body",
+              "value": "JSON"
+            },
+            {
+              "name": "file",
+              "value": "={{ $('RecebeMensagem').item.json.body.payload.media }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -272,
+        -160
+      ],
+      "id": "53bc5f2f-4019-484a-b2d2-0600e063e3f7",
+      "name": "HTTP Request",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.url }}",
+        "mediaKey": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.mediaKey }}",
+        "messageType": "documentMessage"
+      },
+      "type": "n8n-nodes-media-decrypt.whatsAppMediaDecrypt",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -160
+      ],
+      "id": "8b4b54c0-f91c-4827-a005-2dc96e8461d6",
+      "name": "WhatsApp Media Decrypt"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        -160
+      ],
+      "id": "8818054d-8ec4-436e-8548-e0ac2ea48bb5",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "23cd25d9-eaba-4c9c-8088-ffd4618ec7bb",
+              "name": "prompt",
+              "value": "=Faça uma análise deste texto extraído de um arquivo PDF:\n\n{{ $json.text }}\n\nFormate da melhor forma possível para que seja enviado por uma mensagem de Whatsapp.\n\n#limite\n- Enviar somente a sua resposta.\n- Não coloque nenhuma frase do tipo: \"Claro, aqui está uma versão formatada para facilitar o envio da mensagem.\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        384,
+        -160
+      ],
+      "id": "ac122f59-e9b4-4531-9dc3-b3d9c25cd89d",
+      "name": "promptPDF"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -272,
+        176
+      ],
+      "id": "618b14a1-f44b-44eb-82a6-21c6b6b92dbc",
+      "name": "dowloadPlanilha"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.url }}",
+        "mediaKey": "={{ $('RecebeMensagem').item.json.body.payload._data.message.documentMessage.mediaKey }}",
+        "messageType": "documentMessage",
+        "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      },
+      "type": "n8n-nodes-media-decrypt.whatsAppMediaDecrypt",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        176
+      ],
+      "id": "91797e7a-a883-4635-92b2-17754d622797",
+      "name": "WhatsApp Media Decrypt1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        176
+      ],
+      "id": "da161821-296f-461d-b7d9-f66dfee14062",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        224,
+        176
+      ],
+      "id": "c42f42bf-706f-4fe6-9545-8169f1a73df3",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0234ae20-1532-42bc-b50c-d38d90e79d7f",
+              "name": "telefone",
+              "value": "={{ $json.body.payload._data.key.remoteJidAlt.replace('@s.whatsapp.net', '') }}",
+              "type": "string"
+            },
+            {
+              "id": "c98f09e7-ac3a-472e-b426-abac392bbd4c",
+              "name": "nome",
+              "value": "={{ $json.body.payload._data.pushName }}",
+              "type": "string"
+            },
+            {
+              "id": "6e73374f-bf57-4167-8c16-afa6b981da2c",
+              "name": "mensagemRecebida",
+              "value": "={{ $json.body.payload.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -784,
+        -224
+      ],
+      "id": "6389671b-4733-4d3a-819a-b950702cb268",
+      "name": "separarDados"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0234ae20-1532-42bc-b50c-d38d90e79d7f",
+              "name": "prompt",
+              "value": "=Faça uma análise dos dados abaixo de um arquivo excel:\n\n{{ JSON.stringify($json.data) }}\n\nFormate a resposta da melhor forma para ser enviada por mensagem do Whatsapp.\n\n#limite\n- Enviar somente a sua resposta.\n- Não coloque nenhuma frase do tipo: \"Claro, aqui está uma versão formatada para facilitar o envio da mensagem.\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        384,
+        176
+      ],
+      "id": "18614159-a484-4584-99ee-cbd67f5fa7f6",
+      "name": "promptPlanilha"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://SEU_DOMINIO_WAHA.up.railway.app/api/sendText",
+        "sendQuery": false,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "SUA_WAHA_API_KEY_AQUI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatId",
+              "value": "={{ $('RecebeMensagem').item.json.body.payload._data.key.remoteJidAlt }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "session",
+              "value": "default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        -352
+      ],
+      "id": "fbe3fbcc-f830-4da0-8dc9-27e8964c0b31",
+      "name": "enviaWhatsapp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://SEU_DOMINIO_WAHA.up.railway.app/api/sendText",
+        "sendQuery": false,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "SUA_WAHA_API_KEY_AQUI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatId",
+              "value": "={{ $('RecebeMensagem').item.json.body.payload._data.key.remoteJidAlt }}"
+            },
+            {
+              "name": "text",
+              "value": "=Este tipo de arquivo não é suportado. Você pode enviar arquivos PDF ou XLSX."
+            },
+            {
+              "name": "session",
+              "value": "default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        464
+      ],
+      "id": "6f983e00-169b-4e82-8566-b52adf7d615b",
+      "name": "enviaWhatsapp1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RecebeMensagem": {
+      "main": [
+        [
+          {
+            "node": "separarDados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filtraMensagem": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "promptTexto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "dowloadPlanilha",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "enviaWhatsapp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "promptTexto": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Media Decrypt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Media Decrypt": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "promptPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "promptPDF": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dowloadPlanilha": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Media Decrypt1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Media Decrypt1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "promptPlanilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "separarDados": {
+      "main": [
+        [
+          {
+            "node": "filtraMensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "promptPlanilha": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "enviaWhatsapp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "SUA_VERSION_ID_AQUI",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "SUA_INSTANCE_ID_AQUI"
+  },
+  "nodeGroups": [],
+  "id": "SEU_WORKFLOW_ID_AQUI",
+  "tags": []
+}
